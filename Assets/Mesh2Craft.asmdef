@@ -1,0 +1,8 @@
+{
+	"name": "Mesh2Craft",
+	"references": [
+		"UnityEngine.UI",
+		"Unity.TextMeshPro",
+		"Unity.Mathematics"
+	]
+}

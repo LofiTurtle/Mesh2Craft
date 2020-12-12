@@ -1,0 +1,7 @@
+<XmlLayout xmlns="http://www.w3schools.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="..\..\..\ModTools\UI\XmlLayout.xsd">
+  <Include path="Ui/Xml/Design/DesignStyles.xml" />
+  <!--<Button id="mtoc-import-button" class="icon-button" rectAlignment="LowerRight" offsetXY="-110 10" icon="Mesh2Craft/Sprites/VizzyHexagon_sharper" onClick="OnMtocButtonClicked();" tooltip="Open Mesh2Craft" tooltipPosition="Left" />-->
+
+
+
+</XmlLayout>

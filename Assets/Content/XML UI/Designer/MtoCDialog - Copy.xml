@@ -1,0 +1,45 @@
+<XmlLayout xmlns="http://www.w3schools.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:noNamespaceSchemaLocation="..\..\..\ModTools\UI\XmlLayout.xsd">
+  <Include path="Ui/Xml/Design/DesignStyles.xml" />
+
+  <Defaults>
+    <Panel class="invisible" color="#00000000" contentSizeFitter="both" />
+    <TextMeshPro class="active-obj" color="#ffffff" fontSize="16" />
+    <!--<TextMeshPro class="inactive-obj" color="#abb4be" fontSize="18" />-->
+    <TextMeshPro class="inactive-obj" color="#ffffff" fontSize="18" />
+  </Defaults>
+
+  <Panel color="Panel" rectAlignment="MiddleCenter" width="600" height="500" allowDragging="false"
+         returnToOriginalPositionWhenReleased="false">
+    <Panel rectAlignment="UpperCenter">
+      <TextMeshPro class="inspector-header" text="Import Model" />
+    </Panel>
+    <Panel rectAlignment="UpperCenter">
+      <HorizontalLayout rectAlignment="UpperCenter" childAlignment="UpperLeft">
+        <VerticalScrollView rectAlignment="UpperLeft" width="500">
+          <VerticalLayout class="no-image" childForceExpandHeight="false" spacing="5" padding="3" id="obj-list">
+            <Button class="btn menu-button" onClick="OnObjButtonClicked(this);" id="obj-template" active="false">
+              <TextMeshPro class="inactive-obj" internalId="obj-name" text="Obj Name" alignment="Left"
+                           color="#abb4be" />
+            </Button>
+          </VerticalLayout>
+        </VerticalScrollView>
+        <VerticalLayout class="no-image" rectAlignment="UpperRight" childForceExpandHeight="false" spacing="5" padding="10">
+          <Panel class="no-image" preferredHeight="20">
+            <Toggle internalId="new-craft-toggle" isOn="true"
+                    tooltip="Create a new craft file when importing model. Disable this to overwrite the current file instead." tooltipPosition="Above" rectAlignment="MiddleLeft" />
+            <TextMeshPro class="label tooltip" text="Create New Craft" rectAlignment="MiddleRight" />
+          </Panel>
+          <HorizontalLayout rectAlignment="UpperLeft" preferredHeight="20" childAlignment="MiddleLeft" childForceExpandHeight="false">
+            <Toggle internalId="no-mass-toggle" isOn="true"
+                    tooltip="The parts that make up the model will have no mass." tooltipPosition="Above" />
+            <TextMeshPro class="label tooltip" text="Import With No Mass" />
+          </HorizontalLayout>
+          <Button id="m2c-import-button" rectAlignment="UpperLeft" class="btn" onClick="OnImportButtonClicked">
+            <TextMeshPro text="import" />
+          </Button>
+        </VerticalLayout>
+      </HorizontalLayout>
+    </Panel>
+  </Panel>
+</XmlLayout>
