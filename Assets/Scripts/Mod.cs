@@ -1,4 +1,5 @@
 using System.Xml.Linq;
+using Assets.Scripts.Mesh2Craft;
 using ModApi.Ui;
 using UI.Xml;
 
@@ -32,7 +33,6 @@ namespace Assets.Scripts
         /// <value>The singleton instance of the mod object.</value>
         public static Mod Instance { get; } = GetModInstance<Mod>();
 
-        //private ImportButton _importButton;
         public string objDirectory;
 
         protected override void OnModInitialized()
@@ -41,24 +41,8 @@ namespace Assets.Scripts
             System.IO.Directory.CreateDirectory(objDirectory);
 
             base.OnModInitialized();
-            //Game.Instance.SceneManager.SceneLoaded += OnSceneLoaded;
-
-            //Game.Instance.SceneManager.SceneTransitionStarted += (s, e) => _importButton = null;
 
             ImportButton.Initialize();
         }
-
-        
-
-        //public void OnSceneLoaded(object s, SceneEventArgs e)
-        //{
-        //    if (e.Scene == ModApi.Scenes.SceneNames.Designer)
-        //    {
-        //        var ui = Game.Instance.UserInterface;
-        //        _importButton = ui.BuildUserInterfaceFromResource<ImportButton>("Mesh2Craft/Designer/MtoCButton"
-        //            , (script, controller) => script.OnLayoutRebuilt(controller));
-
-        //    }
-        //}
     }
 }

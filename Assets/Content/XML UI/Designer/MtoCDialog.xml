@@ -21,8 +21,7 @@
         <VerticalScrollView movementType="Elastic" verticalScrollbarVisibility="AutoHide" color="DarkPanel">
           <VerticalLayout id="obj-list" childAlignment="UpperCenter" contentSizeFitter="vertical" spacing="5" padding="5">
             <Button class="btn menu-button" onClick="OnObjButtonClicked(this);" id="obj-template" active="false">
-              <TextMeshPro class="inactive-obj" internalId="obj-name" offsetXY="8 0" text="Obj Name" alignment="Left"
-                           color="#abb4be" />
+              <TextMeshPro internalId="obj-name" offsetXY="8 0" text="Obj Name" alignment="Left" />
             </Button>
           </VerticalLayout>
         </VerticalScrollView>
@@ -31,7 +30,7 @@
       <Panel width="200" border="border">
         <VerticalLayout childAlignment="UpperLeft" childForceExpandHeight="false" spacing="5" padding="15" rectAlignment="UpperLeft" height="315">
           <Panel class="no-image" preferredHeight="30">
-            <Toggle id="new-craft-toggle" isOn="true" rectAlignment="MiddleLeft" tooltip="Create a new craft file when importing model. Disable this to overwrite the current file instead." tooltipPosition="Above" />
+            <Toggle id="new-craft-toggle" isOn="true" onValueChanged="OnNewCraftChanged(selectedValue);" rectAlignment="MiddleLeft" tooltip="Create a new craft file when importing model. Disable this to overwrite the current file instead." tooltipPosition="Above" />
             <TextMeshPro class="label" text="Create New Craft" offsetXY="60 0" />
           </Panel>
           <Panel class="no-image" preferredHeight="30">
@@ -46,6 +45,14 @@
             </Panel>
             <TextMeshPro class="label" text="Scale" offsetXY="78 0"/>
           </Panel>
+          <Panel preferredHeight="30">
+            <Panel class="no-image" height="30" width="70" padding="0 2 0 0" rectAlignment="MiddleLeft">
+              <TextMeshProInputField id="shell-width-input" onValueChanged="OnShellWidthChanged(value);" contentType="DecimalNumber" rectAlignment="MiddleLeft" height="30" text="0.001" lineType="SingleLine" tooltip="The thickness of each face. Keep this small for 3D objects, but increasing this can make 2D logos look better." tooltipPosition="Above">
+                <TMP_Text internalId="shell-width-field" text="0.001" alignment="Center" />
+              </TextMeshProInputField>
+            </Panel>
+            <TextMeshPro class="label" text="Shell Width" offsetXY="78 0"/>
+          </Panel>
           <Panel preferredHeight="10">
             <Image class="separator" rectAlignment="LowerCenter"/>
           </Panel>
@@ -59,6 +66,9 @@
           <Panel preferredHeight="20">
             <TextMeshPro class="label" id="is-tris" fontSize="14" text="" />
           </Panel>
+          <!--<Button class="btn btn-primary" onClick="OnTestSaveClicked" >
+            <TextMeshPro class="text-lg" text="Save craft_temp" />
+          </Button>-->
         </VerticalLayout>
         <Panel rectAlignment="LowerCenter" height="60" preferredWidth="100" padding="15">
           <Button class="btn btn-primary" id="import-button" rectAlignment="LowerCenter" onClick="OnImportButtonClicked">

@@ -19,7 +19,7 @@ using ObjParser;
 public class ImportDialogScript : MonoBehaviour
 {
     private static string objPath = Mod.Instance.objDirectory;
-    private List<string> objList = Directory.EnumerateFiles(objPath, "*.obj").ToList(); 
+    private List<string> objList = Directory.EnumerateFiles(objPath, "*.obj").ToList();
     //private List<string> objList = new List<string>();
     private static XmlElement activeObjElement;
     private static List<string> activeClasses = new List<string>();
@@ -27,7 +27,9 @@ public class ImportDialogScript : MonoBehaviour
     private static Obj _obj = new Obj();
     private static string _objName = "";
     private static double _scale = 1;
+    private static double _shellWidth = 0.001;
     private static bool _noMass = false;
+    private static bool _newCraft = true;
 
     private IXmlLayoutController _controller;
     private XmlLayout _xmlLayout;
@@ -49,8 +51,10 @@ public class ImportDialogScript : MonoBehaviour
     private void ResetOptionsValues()
     {
         _scale = 1;
+        _shellWidth = 0.001;
         _noMass = false;
         _objName = "";
+        _newCraft = true;
     }
 
     private void UpdateObjList(List<string> list)
@@ -110,19 +114,13 @@ public class ImportDialogScript : MonoBehaviour
         //Debug.Log("Setting classes");
         if (activeObjElement != null)
         {
-            //activeObjElement.SetAndApplyAttribute("colors", "Button|ButtonHover|ButtonPressed|ButtonDisabled");
-            //activeObjElement.SetAndApplyAttribute("textColors", "ButtonText|ButtonText|ButtonText|ButtonDisabledText");
-            //activeObjElement.childElements.First().SetAndApplyAttribute("color", "#abb4be"); //#abb4be is ButtonText
             activeObjElement.SetClass("btn");
-            activeObjElement.childElements.First().SetClass("inactive-obj");
+            activeObjElement.SetAndApplyAttribute("textColors", "ButtonText|ButtonText|ButtonText|ButtonText");
         }
 
         activeObjElement = objElement;
-        //activeObjElement.SetAndApplyAttribute("colors", "Primary|PrimaryHover|PrimaryPressed|Button");
-        //activeObjElement.SetAndApplyAttribute("textColors", "White|White|White|White");
-        //activeObjElement.childElements.First().SetAndApplyAttribute("color", "#ffffff");
         activeObjElement.SetClass("btn", "btn-primary");
-        activeObjElement.childElements.First().SetClass("active-obj");
+        activeObjElement.SetAndApplyAttribute("textColors", "White|White|White|White");
 
         UpdateObjDetails();
     }
@@ -164,35 +162,48 @@ public class ImportDialogScript : MonoBehaviour
 
     public void OnImportButtonClicked()
     {
-        Debug.Log("ImportButton clicked");
-        if (activeObjElement != null)
+        // Debug.Log("ImportButton clicked");
+
+        if (!ObjIsTris())
         {
-            // TODO save craft before building the model
+            _xmlLayout.GetElementById("not-tris-warning").SetAndApplyAttribute("active", "true");
+            _xmlLayout.GetElementById("hide-main-panel").SetAndApplyAttribute("active", "true");
+            return;
+        }
 
+        if (activeObjElement != null) // make sure an obj is selected
+        {
             string craftFile;
-            if (!(Game.Instance.Designer as DesignerScript).CraftScript.Data.Name.Equals("New"))
+
+            string oldCraftId = (Game.Instance.Designer as DesignerScript).CraftScript.Data.Name;
+            string newCraftId;
+            if (!oldCraftId.Equals("New")) // if craft is saved
             {
-                craftFile = Game.Instance.CraftDesigns.RootFolderPath
-                    + (Game.Instance.Designer as DesignerScript).CraftScript.Data.Name + ".xml";
+
+                if (_newCraft) // make new file, or overwrite current one
+                {
+                    newCraftId = oldCraftId + "_" + Path.GetFileNameWithoutExtension(_objName);
+                    (Game.Instance.Designer as DesignerScript).CraftScript.Data.Name = newCraftId;
+                }
+                else
+                {
+                    newCraftId = oldCraftId;
+                }
+                Game.Instance.Designer.SaveCraft(newCraftId, newCraftId, false);
+                craftFile = Game.Instance.CraftDesigns.RootFolderPath + newCraftId + ".xml";
             }
-            else
+            else // if craft is not saved. Basically always make new craft
             {
-                Game.Instance.Designer.ShowMessage("Craft not saved. Save and try again", 5f);
-                return;
+                newCraftId = oldCraftId + "_" + Path.GetFileNameWithoutExtension(_objName);
+                (Game.Instance.Designer as DesignerScript).CraftScript.Data.Name = newCraftId;
+
+                Game.Instance.Designer.SaveCraft(newCraftId, newCraftId, false);
+                craftFile = Game.Instance.CraftDesigns.RootFolderPath + newCraftId + ".xml";
             }
 
-            if(!ObjIsTris())
-            {
-                _xmlLayout.GetElementById("not-tris-warning").SetAndApplyAttribute("active", "true");
-                _xmlLayout.GetElementById("hide-main-panel").SetAndApplyAttribute("active", "true");
-                return;
-            }
-
-            Debug.Log("Gathering settings");
             string objFile = objPath + activeObjElement.id;
-            double shellWidth = 0.001;
 
-            var options = new MeshOptions(craftFile, objFile, shellWidth, _scale, _noMass);
+            var options = new MeshOptions(craftFile, objFile, _shellWidth, _scale, _noMass);
 
             Debug.Log("Calling BuildMesh() with the following options: ");
             Debug.Log(options);
@@ -206,6 +217,14 @@ public class ImportDialogScript : MonoBehaviour
         }
     }
 
+    public void OnTestSaveClicked()
+    {
+        string newId = "AABC";
+        (Game.Instance.Designer as DesignerScript).CraftScript.Data.Name = newId;
+        Debug.Log("Saving craft with id " + newId);
+        Game.Instance.Designer.SaveCraft(newId, newId, false);
+    }
+
     public void OnScaleChanged(string value)
     {
         _scale = double.Parse(value);
@@ -214,6 +233,16 @@ public class ImportDialogScript : MonoBehaviour
     public void OnNoMassChanged(string value)
     {
         _noMass = Boolean.Parse(value);
+    }
+
+    public void OnNewCraftChanged(string value)
+    {
+        _newCraft = Boolean.Parse(value);
+    }
+
+    public void OnShellWidthChanged(string value)
+    {
+        _shellWidth = Double.Parse(value);
     }
 
     public void NotTrisWarningClose()

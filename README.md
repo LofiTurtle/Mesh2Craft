@@ -6,12 +6,7 @@ Usage is straightforward, there is one screen in the Designer with all the optio
 
 ## TODO
 
-* Implement overwriting the current craft.
 * Option to auto-select root when a face is selected.
 * Possibly support wireframe models using cylindrical fuel tanks.
 
 ## Known Issues
-
-* "Create New Craft" toggle is non-functional.
-* When importing a model to a craft with unsaved changes, the changes will not be included in the new craft file with the model.
-* Text color on the selected .obj button is hard to read.

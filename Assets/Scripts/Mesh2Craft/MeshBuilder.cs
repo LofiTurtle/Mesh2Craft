@@ -47,8 +47,9 @@ class MeshBuilder
 
         var verts = obj.VertexList;
         var faces = obj.FaceList;
-
-        verts = ScaleObj(verts, options.scale);
+        
+        if(Abs(options.scale - 1) > .001)
+            verts = ScaleObj(verts, options.scale);
 
         partsElement.Add(new XElement("Part",
             new XAttribute("id", lastPartId),
@@ -165,13 +166,15 @@ class MeshBuilder
                     new XAttribute("area", "0,0,0,0,0,0")),
                 new XElement("Config",
                     new XAttribute("partScale", options.shellWidth + "," + options.shellWidth + "," + options.shellWidth),
-                    new XAttribute("massScale", options.shellWidth * 0.1 * (options.noMass ? 0 : 1))),
+                    new XAttribute("massScale", options.shellWidth * (options.noMass ? 0 : 1))),
                 new XElement("Wing",
                     new XAttribute("hingeDistanceFromTrailingEdge", "0.5"),
                     new XAttribute("rootLeadingOffset", baseWidth * (1 / options.shellWidth)),
                     new XAttribute("rootTrailingOffset", baseWidth * (1 / options.shellWidth)),
                     new XAttribute("tipLeadingOffset", "0"),
-                    new XAttribute("tipPosition", (2 * offsetFinalRot.X * (1 / options.shellWidth)) + "," + (2 * offsetFinalRot.Y * (1 / options.shellWidth)) + "," + (2 * offsetFinalRot.Z * (1 / options.shellWidth))),
+                    new XAttribute("tipPosition", (2 * offsetFinalRot.X * (1 / options.shellWidth)) + "," 
+                        + (2 * offsetFinalRot.Y * (1 / options.shellWidth)) + "," 
+                        + (2 * offsetFinalRot.Z * (1 / options.shellWidth))),
                     new XAttribute("tipTrailingOffset", "0"))));
 
             connectionsElement.Add(new XElement("Connection",
@@ -183,23 +186,13 @@ class MeshBuilder
             bodyPartIds.Value += "," + (lastPartId + partIdOffset).ToString();
         }
 
-        string outPath = options.craftFile;
-        string modExtension = "_" + Path.GetFileNameWithoutExtension(options.objFile) + ".xml";
-        if (!outPath.Contains(modExtension))
-        {
-            outPath = Path.ChangeExtension(outPath, null);
-            outPath += modExtension;
-        }
-        string newCraftName = Path.GetFileNameWithoutExtension(outPath);
-        var craftElement = craftDoc.Element("Craft");
-        craftElement.Attribute("name").Value = newCraftName;
-
-        craftDoc.Save(outPath);
+        craftDoc.Save(options.craftFile);
 
         var loader = (Game.Instance.Designer as DesignerScript).CraftLoader;
-        loader.LoadCraftInteractive(newCraftName, true, true, null, null, null);
+        loader.LoadCraftInteractive(Path.GetFileNameWithoutExtension(options.craftFile), true, true,
+            "'" + Path.GetFileName(options.objFile) + "'" + " Imported Successfully", null, null);
 
-        Game.Instance.Designer.ShowMessage(Path.GetFileName(options.objFile) + "Imported Successfully");
+        // Game.Instance.Designer.ShowMessage("'" + Path.GetFileName(options.objFile) + "'" + " Imported Successfully");
 
         obj = new Obj();
     }
@@ -222,7 +215,9 @@ class MeshBuilder
         //potentially add support for different axis orientations
         //currently, +y is up, -z is forward (blender default behavior)
 
-        return new Vector3((float)verts[face.VertexIndexList[i] - 1].X, (float)verts[face.VertexIndexList[i] - 1].Y, (float)(verts[face.VertexIndexList[i] - 1].Z * -1));
+        return new Vector3((float)verts[face.VertexIndexList[i] - 1].X, 
+            (float)verts[face.VertexIndexList[i] - 1].Y, 
+            (float)(verts[face.VertexIndexList[i] - 1].Z * -1));
     }
 
     public static Vector3 VectorRotate(Vector3 v, Vector3 k, double theta)
@@ -233,39 +228,5 @@ class MeshBuilder
     public static UnityEngine.Vector3 NumericsToUnity(Vector3 v)
     {
         return new UnityEngine.Vector3(v.X, v.Y, v.Z);
-    }
-
-    public static string IdFromFile(string craftFile)
-    {
-        //not necessary. craftId is just the file name
-
-        Debug.Log("starting to look for craftId");
-        Debug.Log("Craft file: " + craftFile);
-
-        List<string> ids = Game.Instance.CraftDesigns.GetCraftDesignIds(true);
-        string craftId = "";
-        bool success = false;
-
-        foreach ( string id in ids)
-        {
-            string idFile = Game.Instance.CraftDesigns.GetCraftFile(id).FullName;
-            idFile = idFile.Replace('\\', '/');
-            Debug.Log(idFile);
-            if (idFile.Equals(craftFile))
-            {
-                craftId = id;
-                success = true;
-                break;
-            }
-        }
-
-        if (!success)
-        {
-            Debug.LogError("Couldn't find craftId for file: " + craftFile);
-        }
-
-        Debug.Log("Found the craftId?");
-
-        return craftId;
     }
 }
