@@ -12,9 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: -1366777262, guid: c37b925f2b4978342b2e0b83a8fa404a, type: 3}
   m_Name: ModData
   m_EditorClassIdentifier: 
-  _assemblies: []
+  _assemblies:
+  - ObjParser.dll
+  - Mesh2Craft.dll
   _author: LofiTurtle
-  _description: Now with 100% more workingness
+  _description: A mod to import 3D models using stock SR2 parts.
   _loadPriority: 1000
   _name: Mesh2Craft
   _otherAssets: []
@@ -32,4 +34,5 @@ MonoBehaviour:
   _partStyleExtensions: []
   _partTextureStyles: []
   _persistentObjects: []
-  _uiResourceDatabases: []
+  _uiResourceDatabases:
+  - {fileID: 11400000, guid: 0e5837169976b7249bd7d6563648e60e, type: 2}

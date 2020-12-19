@@ -56,11 +56,11 @@ public class ImportButton : MonoBehaviour
                 new XAttribute("id", _m2cButtonId),
                 new XAttribute("class", "toggle-button audio-btn-click"),
                 new XAttribute("name", "ButtonPanel.TutorialDesignerButton"),
-                new XAttribute("tooltip", "Open Mesh2Craft"),
+                new XAttribute("tooltip", "Mesh2Craft"),
                 new XElement(
                     ns + "Image",
                     new XAttribute("class", "toggle-button-icon"),
-                    new XAttribute("sprite", "Mesh2Craft/Sprites/VizzyHexagon_sharper"))));
+                    new XAttribute("sprite", "Mesh2Craft/Sprites/m2cIcon_thicker"))));
 
         request.AddOnLayoutRebuiltAction(XmlLayoutController =>
         {
