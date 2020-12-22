@@ -24,11 +24,7 @@ MonoBehaviour:
     resource: {fileID: 4900000, guid: 6f40062b46ca6c7478b0e1ccc9f181b4, type: 3}
   - path: Mesh2Craft/Designer/MtoCDialog
     resource: {fileID: 4900000, guid: 2edde936087b6964488ffbba0c27256f, type: 3}
-  - path: Mesh2Craft/Sprites/m2cIcon_01
-    resource: {fileID: 21300000, guid: 45cf0891a5d2b7d47b8e91a8ecb46d31, type: 3}
   - path: Mesh2Craft/Sprites/m2cIcon_thicker
     resource: {fileID: 21300000, guid: cb3aa97cf3d93364faf885d848b877c2, type: 3}
-  - path: Mesh2Craft/Sprites/VizzyHexagon_sharper
-    resource: {fileID: 21300000, guid: 02367338f6f0e5f4db0bd6b36d522036, type: 3}
   - path: Mesh2Craft/UIResourceDatabase
     resource: {fileID: 11400000}

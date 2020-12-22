@@ -1,34 +1,31 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using ModApi.Ui;
-using UnityEditor;
 using Assets.Scripts;
 using System;
 using Assets.Scripts.Design;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using UI.Xml;
 using TMPro;
-using UnityEngine.PlayerLoop;
 using UnityEngine.UI;
 using ObjParser;
 
 public class ImportDialogScript : MonoBehaviour
 {
-    private static string objPath = Mod.Instance.objDirectory;
-    private List<string> objList = Directory.EnumerateFiles(objPath, "*.obj").ToList();
+    private static readonly string objDir = Mod.Instance.objDirectory;
+    private readonly List<string> objList = Directory.EnumerateFiles(objDir, "*.obj").ToList();
     //private List<string> objList = new List<string>();
-    private static XmlElement activeObjElement;
-    private static List<string> activeClasses = new List<string>();
-    private static List<string> inactiveClasses = new List<string>();
+    private static XmlElement _activeObjElement;
     private static Obj _obj = new Obj();
     private static string _objName = "";
     private static double _scale = 1;
     private static double _shellWidth = 0.001;
-    private static bool _noMass = false;
+    private static bool _hasMass = true;
+    private static bool _hasDrag = true;
+    private static bool _hasCollision = true;
+    private static bool _fuelTank = true;
     private static bool _newCraft = true;
 
     private IXmlLayoutController _controller;
@@ -38,7 +35,7 @@ public class ImportDialogScript : MonoBehaviour
     {
         _controller = controller;
         _xmlLayout = (XmlLayout)controller.XmlLayout;
-        Debug.Log("Updating obj list");
+        //Debug.Log("Updating obj list");
         UpdateObjList(objList);
     }
 
@@ -50,10 +47,13 @@ public class ImportDialogScript : MonoBehaviour
 
     private void ResetOptionsValues()
     {
+        _objName = "";
         _scale = 1;
         _shellWidth = 0.001;
-        _noMass = false;
-        _objName = "";
+        _hasMass = true;
+        _hasDrag = true;
+        _hasCollision = true;
+        _fuelTank = true;
         _newCraft = true;
     }
 
@@ -63,26 +63,32 @@ public class ImportDialogScript : MonoBehaviour
         XmlElement listItemTemplate = _xmlLayout.GetElementById("obj-template");
         List<string> objNames = new List<string>();
 
-        foreach (string obj in list)
-        {
-            string objName = Path.GetFileName(obj);
-            objNames.Add(objName);
-
-            if (_xmlLayout.GetElementById("obj-" + objName) == null)
+        if (list.Any())
+            foreach (string obj in list)
             {
+                string objName = Path.GetFileName(obj);
+                objNames.Add(objName);
 
-                XmlElement listItem = GameObject.Instantiate(listItemTemplate);
-                XmlElement component = listItem.GetComponent<XmlElement>();
+                if (_xmlLayout.GetElementById("obj-" + objName) == null)
+                {
 
-                component.Initialise(_xmlLayout, (RectTransform)listItem.transform, listItemTemplate.tagHandler);
-                vLayout.AddChildElement(component);
+                    XmlElement listItem = GameObject.Instantiate(listItemTemplate);
+                    XmlElement component = listItem.GetComponent<XmlElement>();
 
-                component.SetAndApplyAttribute("active", "true");
-                component.SetAndApplyAttribute("id", objName);
-                component.GetElementByInternalId<TextMeshProUGUI>("obj-name").text = objName;
-                //component.SetAndApplyAttribute("text", objName);
-                component.ApplyAttributes();
+                    component.Initialise(_xmlLayout, (RectTransform)listItem.transform, listItemTemplate.tagHandler);
+                    vLayout.AddChildElement(component);
+
+                    component.SetAndApplyAttribute("active", "true");
+                    component.SetAndApplyAttribute("id", objName);
+                    component.GetElementByInternalId<TextMeshProUGUI>("obj-name").text = objName;
+                    component.ApplyAttributes();
+                }
             }
+        else
+        {
+            XmlElement message = _xmlLayout.GetElementById("no-obj-message");
+            message.SetAndApplyAttribute("text", "No .obj files found. Paste .obj files into " + objDir);
+            message.SetAndApplyAttribute("active", "true");
         }
 
         List<Button> buttons = vLayout.GetComponentsInChildren<Button>().ToList();
@@ -97,30 +103,16 @@ public class ImportDialogScript : MonoBehaviour
 
     public void OnObjButtonCLicked(XmlElement objElement)
     {
-        //Debug.Log("ObjButton clicked");
-
-        if (activeClasses.Any())
-        {
-            activeClasses.Add("btn");
-            activeClasses.Add("button-primary");
-        }
-
-        if (inactiveClasses.Any())
-        {
-            inactiveClasses.Add("btn");
-            inactiveClasses.Add("button-menu");
-        }
-
         //Debug.Log("Setting classes");
-        if (activeObjElement != null)
+        if (_activeObjElement != null)
         {
-            activeObjElement.SetClass("btn");
-            activeObjElement.SetAndApplyAttribute("textColors", "ButtonText|ButtonText|ButtonText|ButtonText");
+            _activeObjElement.SetClass("btn");
+            _activeObjElement.SetAndApplyAttribute("textColors", "ButtonText|ButtonText|ButtonText|ButtonText");
         }
 
-        activeObjElement = objElement;
-        activeObjElement.SetClass("btn", "btn-primary");
-        activeObjElement.SetAndApplyAttribute("textColors", "White|White|White|White");
+        _activeObjElement = objElement;
+        _activeObjElement.SetClass("btn", "btn-primary");
+        _activeObjElement.SetAndApplyAttribute("textColors", "White|White|White|White");
 
         UpdateObjDetails();
     }
@@ -128,7 +120,7 @@ public class ImportDialogScript : MonoBehaviour
     private void UpdateObjDetails()
     {
         XmlElement modelName = _xmlLayout.GetElementById("model-name");
-        string objName = activeObjElement.id;
+        string objName = _activeObjElement.id;
 
         modelName.SetText(objName);
 
@@ -171,7 +163,7 @@ public class ImportDialogScript : MonoBehaviour
             return;
         }
 
-        if (activeObjElement != null) // make sure an obj is selected
+        if (_activeObjElement != null) // make sure an obj is selected
         {
             string craftFile;
 
@@ -201,12 +193,12 @@ public class ImportDialogScript : MonoBehaviour
                 craftFile = Game.Instance.CraftDesigns.RootFolderPath + newCraftId + ".xml";
             }
 
-            string objFile = objPath + activeObjElement.id;
+            string objFile = objDir + _activeObjElement.id;
 
-            var options = new MeshOptions(craftFile, objFile, _shellWidth, _scale, _noMass);
+            var options = new MeshOptions(craftFile, objFile, _shellWidth, _scale, _hasMass, _hasDrag, _hasCollision, false);
 
-            Debug.Log("Calling BuildMesh() with the following options: ");
-            Debug.Log(options);
+            Debug.Log("Calling BuildMesh() with the following options:\n" + options);
+            //Debug.Log(options);
             MeshBuilder.BuildMesh(options);
 
             Close();
@@ -225,26 +217,6 @@ public class ImportDialogScript : MonoBehaviour
         Game.Instance.Designer.SaveCraft(newId, newId, false);
     }
 
-    public void OnScaleChanged(string value)
-    {
-        _scale = double.Parse(value);
-    }
-
-    public void OnNoMassChanged(string value)
-    {
-        _noMass = Boolean.Parse(value);
-    }
-
-    public void OnNewCraftChanged(string value)
-    {
-        _newCraft = Boolean.Parse(value);
-    }
-
-    public void OnShellWidthChanged(string value)
-    {
-        _shellWidth = Double.Parse(value);
-    }
-
     public void NotTrisWarningClose()
     {
         _xmlLayout.GetElementById("not-tris-warning").SetAndApplyAttribute("active", "false");
@@ -253,13 +225,13 @@ public class ImportDialogScript : MonoBehaviour
 
     private static Obj GetObj()
     {
-        if (_objName.Equals(activeObjElement.id))
+        if (_objName.Equals(_activeObjElement.id))
             return _obj;
-        else if (activeObjElement != null)
+        else if (_activeObjElement != null)
         {
             _obj = new Obj();
-            _obj.LoadObj(Mod.Instance.objDirectory + activeObjElement.id);
-            _objName = activeObjElement.id;
+            _obj.LoadObj(Mod.Instance.objDirectory + _activeObjElement.id);
+            _objName = _activeObjElement.id;
             return _obj;
         }
         else
@@ -269,19 +241,41 @@ public class ImportDialogScript : MonoBehaviour
         }
     }
 
-    public static void PrintList(List<string> list)
+    public void OnScaleChanged(string value)
     {
-        Debug.Log("Printing objList with length " + list.Count);
-        StringBuilder listedItems = new StringBuilder();
-        foreach (string item in list)
-        {
-            if (listedItems.Length != 0)
-            {
-                listedItems.Append("\n");
-            }
-            listedItems.Append(item);
-        }
-        Debug.Log(listedItems);
+        if (value.Length > 0)
+            _scale = double.Parse(value);
+    }
+
+    public void OnHasMassChanged(string value)
+    {
+        _hasMass = Boolean.Parse(value);
+    }
+
+    public void OnNewCraftChanged(string value)
+    {
+        _newCraft = Boolean.Parse(value);
+    }
+
+    public void OnShellWidthChanged(string value)
+    {
+        if (value.Length > 0)
+            _shellWidth = Double.Parse(value);
+    }
+
+    public void OnHasDragChanged(string value)
+    {
+        _hasDrag = Boolean.Parse(value);
+    }
+
+    public void OnHasCollisionChanged(string value)
+    {
+        _hasCollision = Boolean.Parse(value);
+    }
+
+    public void OnFuelTankChanged(string value)
+    {
+        _fuelTank = Boolean.Parse(value);
     }
 }
 
@@ -289,20 +283,30 @@ public class MeshOptions
 {
     public string objFile, craftFile;
     public double shellWidth, scale;
-    public bool noMass;
+    public bool hasMass, hasDrag, hasCollision, fuelTank;
 
-    public MeshOptions(string craftFile, string objFile, double shellWidth, double scale, bool noMass)
+    public MeshOptions(string craftFile, string objFile, double shellWidth, double scale,
+        bool hasMass, bool hasDrag, bool hasCollision, bool fuelTank)
     {
         this.craftFile = craftFile;
         this.objFile = objFile;
-        this.shellWidth = Math.Max(shellWidth * 10, .001);
+        this.shellWidth = Math.Max(shellWidth, .001);
         this.scale = scale;
-        this.noMass = noMass;
+        this.hasMass = hasMass;
+        this.hasDrag = hasDrag;
+        this.hasCollision = hasCollision;
+        this.fuelTank = fuelTank;
     }
 
     public override string ToString()
     {
         return "obj File: " + objFile + "\n"
-               + "Craft File: " + craftFile + "\n";
+               + "Craft File: " + craftFile + "\n"
+               + "Shell Width: " + shellWidth + "\n"
+               + "Scale: " + scale + "\n"
+               + "No Mass: " + hasMass + "\n"
+               + "No Drag: " + hasDrag + "\n"
+               + "No Collision: " + hasCollision + "\n"
+               + "Fuel Tank: " + fuelTank;
     }
 }

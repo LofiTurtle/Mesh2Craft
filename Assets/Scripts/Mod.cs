@@ -37,10 +37,10 @@ namespace Assets.Scripts
 
         protected override void OnModInitialized()
         {
+            base.OnModInitialized();
+
             objDirectory = Application.persistentDataPath + "/UserData/Mesh2Craft/Models/";
             System.IO.Directory.CreateDirectory(objDirectory);
-
-            base.OnModInitialized();
 
             ImportButton.Initialize();
         }
