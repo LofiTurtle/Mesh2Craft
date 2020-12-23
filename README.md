@@ -7,7 +7,6 @@ Usage is straightforward, there is one screen in the Designer with all the optio
 ## TODO
 
 * Option to auto-select root when a face is selected.
-* Ability to use fuel tanks instead of structural panels, to make small models easier to work with.
 * Possibly support wireframe models using cylindrical fuel tanks.
 
 ## Known Issues
