@@ -5,7 +5,6 @@
   <Defaults>
     <Panel class="invisible" color="#00000000" contentSizeFitter="both" />
     <TextMeshPro class="active-obj" color="#ffffff" fontSize="16" />
-    <!--<TextMeshPro class="inactive-obj" color="#abb4be" fontSize="18" />-->
     <TextMeshPro class="inactive-obj" color="#ffffff" fontSize="16" />
   </Defaults>
 
@@ -13,7 +12,7 @@
     <!--title panel-->
     <Panel class="inspector-header" rectAlignment="UpperCenter" height="30" color="border">
       <TextMeshPro class="text-lg" text="Import Model" color="Primary"/>
-      <Image class="flyout-close-button" id="ImageSelectorClose" rectAlignment="MiddleRight" color="labeltext" onClick="Close;"/>
+      <Image class="flyout-close-button" id="MainPanelClose" rectAlignment="MiddleRight" color="labeltext" onClick="Close;"/>
     </Panel>
     <!--obj file list-->
     <HorizontalLayout rectAlignment="LowerCenter" height="370" width="600">
@@ -27,28 +26,13 @@
           </VerticalLayout>
         </VerticalScrollView>
       </Panel>
+
       <!--options panel-->
       <Panel width="200" border="border">
         <VerticalLayout childAlignment="UpperLeft" childForceExpandHeight="false" spacing="5" padding="15" rectAlignment="UpperLeft" height="315">
           <Panel class="no-image" preferredHeight="30">
             <Toggle id="new-craft-toggle" isOn="true" onValueChanged="OnNewCraftChanged(selectedValue);" rectAlignment="MiddleLeft" tooltip="Create a new craft file when importing model. Disable this to overwrite the current file instead." tooltipPosition="Above" />
             <TextMeshPro class="label" text="Save as New File" offsetXY="60 0" />
-          </Panel>
-          <Panel class="no-image" preferredHeight="30">
-            <Toggle id="has-mass-toggle" onValueChanged="OnHasMassChanged(selectedValue);" isOn="true" rectAlignment="MiddleLeft" tooltip="Whether or not the parts will have mass." tooltipPosition="Above" />
-            <TextMeshPro class="label" text="Parts Have Mass" offsetXY="60 0" />
-          </Panel>
-          <Panel class="no-image" preferredHeight="30">
-            <Toggle id="has-drag-toggle" onValueChanged="OnHasDragChanged(selectedValue);" isOn="true" rectAlignment="MiddleLeft" tooltip="Whether or not the parts will be included in the drag model." tooltipPosition="Above" />
-            <TextMeshPro class="label" text="Include in Drag" offsetXY="60 0" />
-          </Panel>
-          <Panel class="no-image" preferredHeight="30">
-            <Toggle id="has-collisions-toggle" onValueChanged="OnHasCollisionChanged(selectedValue);" isOn="true" rectAlignment="MiddleLeft" tooltip="Whether or not these parts will collide with the rest of the craft." tooltipPosition="Above" />
-            <TextMeshPro class="label" text="Parts Have Collisions" offsetXY="60 0" />
-          </Panel>
-          <Panel class="no-image" preferredHeight="30" active="false">
-            <Toggle id="use-fuel-tank" onValueChanged="OnFuelTankChanged(selectedValue);" isOn="true" rectAlignment="MiddleLeft" tooltip="Fuel Tanks will be used to construct the model. Disable to use Structural Panels instead. Structural Panels have slightly better performance, but can behave inconsistently." tooltipPosition="Above" />
-            <TextMeshPro class="label" text="Use Fuel Tanks" offsetXY="60 0" />
           </Panel>
           <Panel preferredHeight="30">
             <Panel class="no-image" height="30" width="70" padding="0 2 0 0" rectAlignment="MiddleLeft">
@@ -58,13 +42,10 @@
             </Panel>
             <TextMeshPro class="label" text="Scale" offsetXY="78 0"/>
           </Panel>
-          <Panel preferredHeight="30">
-            <Panel class="no-image" height="30" width="70" padding="0 2 0 0" rectAlignment="MiddleLeft">
-              <TextMeshProInputField id="shell-width-input" onValueChanged="OnShellWidthChanged(value);" contentType="DecimalNumber" rectAlignment="MiddleLeft" height="30" text="0.001" lineType="SingleLine" tooltip="The thickness of each face. Keep this small for 3D objects, but increasing this can make 2D models look better." tooltipPosition="Above">
-                <TMP_Text internalId="shell-width-field" text="0.001" alignment="Center" />
-              </TextMeshProInputField>
-            </Panel>
-            <TextMeshPro class="label" text="Shell Width" offsetXY="78 0"/>
+          <Panel preferredHeight="60">
+            <Button class="btn" id="advanced-button" width="150" onClick="OnAdvancedButtonClicked">
+              <TextMeshPro text="Advanced" />
+            </Button>
           </Panel>
           <Panel preferredHeight="10">
             <Image class="separator" rectAlignment="LowerCenter"/>
@@ -79,9 +60,6 @@
           <Panel preferredHeight="20">
             <TextMeshPro class="label" id="is-tris" fontSize="14" text="" />
           </Panel>
-          <!--<Button class="btn btn-primary" onClick="OnTestSaveClicked" >
-            <TextMeshPro class="text-lg" text="Save craft_temp" />
-          </Button>-->
         </VerticalLayout>
         <Panel rectAlignment="LowerCenter" height="60" preferredWidth="100" padding="15">
           <Button class="btn btn-primary" id="import-button" rectAlignment="LowerCenter" onClick="OnImportButtonClicked">
@@ -91,9 +69,49 @@
       </Panel>
     </HorizontalLayout>
   </Panel>
-  <!--not triangulated warning-->
-  <Panel id="hide-main-panel" width="600" height="400" rectAlignment="MiddleCenter" color="TransparentPanel" active="false">
+
+  <!--main panel hider-->
+  <Panel id="hide-main-panel" width="600" height="400" rectAlignment="MiddleCenter" color="TransparentPanel" active="false">  </Panel>
+    
+  <!--advanced options-->
+  <Panel id="advanced-options-panel" color="Panel" width="300" height="320" rectAlignment="MiddleCenter" active="false">
+    <!--title panel-->
+    <Panel class="advanced-header" rectAlignment="UpperCenter" height="30" color="border">
+      <TextMeshPro class="text-lg" text="Advanced Options"/>
+      <Image class="flyout-close-button" id="AdvancedOptionsClose" rectAlignment="MiddleRight" color="labeltext" onClick="CloseAdvancedPanel;"/>
+    </Panel>
+    <!--options-->
+    <Panel rectAlignment="LowerCenter" height="290" border="border">
+    <VerticalLayout childAlignment="UpperLeft" childForceExpandHeight="false" spacing="5" padding="15">
+      <Panel class="no-image" preferredHeight="30">
+        <Toggle id="has-mass-toggle" onValueChanged="OnHasMassChanged(selectedValue);" isOn="true" rectAlignment="MiddleLeft" tooltip="Whether or not the parts will have mass." tooltipPosition="Above" />
+        <TextMeshPro class="label" text="Parts Have Mass" offsetXY="60 0" />
+      </Panel>
+      <Panel class="no-image" preferredHeight="30">
+        <Toggle id="has-drag-toggle" onValueChanged="OnHasDragChanged(selectedValue);" isOn="true" rectAlignment="MiddleLeft" tooltip="Whether or not the parts will be included in the drag model." tooltipPosition="Above" />
+        <TextMeshPro class="label" text="Include in Drag" offsetXY="60 0" />
+      </Panel>
+      <Panel class="no-image" preferredHeight="30">
+        <Toggle id="has-collisions-toggle" onValueChanged="OnHasCollisionChanged(selectedValue);" isOn="true" rectAlignment="MiddleLeft" tooltip="Whether or not these parts will collide with the rest of the craft." tooltipPosition="Above" />
+        <TextMeshPro class="label" text="Parts Have Collisions" offsetXY="60 0" />
+      </Panel>
+      <Panel class="no-image" preferredHeight="30" active="true">
+        <Toggle id="use-fuel-tank" onValueChanged="OnFuelTankChanged(selectedValue);" isOn="true" rectAlignment="MiddleLeft" tooltip="Fuel Tanks will be used to construct the model. Disable to use Structural Panels instead. Structural Panels have slightly better performance, but might behave inconsistently." tooltipPosition="Above" />
+        <TextMeshPro class="label" text="Use Fuel Tanks" offsetXY="60 0" />
+      </Panel>
+      <Panel preferredHeight="30">
+        <Panel class="no-image" height="30" width="70" padding="0 2 0 0" rectAlignment="MiddleLeft">
+          <TextMeshProInputField id="shell-width-input" onValueChanged="OnShellWidthChanged(value);" contentType="DecimalNumber" rectAlignment="MiddleLeft" height="30" text="0.001" lineType="SingleLine" tooltip="The thickness of each face. Keep this small for 3D objects, but increasing this can make 2D models look better." tooltipPosition="Above">
+            <TMP_Text internalId="shell-width-field" text="0.001" alignment="Center" />
+          </TextMeshProInputField>
+        </Panel>
+        <TextMeshPro class="label" text="Shell Width" offsetXY="78 0"/>
+      </Panel>
+    </VerticalLayout>
+    </Panel>
   </Panel>
+
+  <!--not triangulated warning-->
   <Panel id="not-tris-warning" color="Panel" width="400" height="200" rectAlignment="MiddleCenter" border="border" active="false">
     <TextMeshPro class="text-lg" width="350" offsetXY="0 40" text="Model must be triangulated (all faces have 3 sides). Triangulate the model and try again"/>
     <Button class="btn" width="150" offsetXY="0 20" rectAlignment="LowerCenter" onClick="NotTrisWarningClose">

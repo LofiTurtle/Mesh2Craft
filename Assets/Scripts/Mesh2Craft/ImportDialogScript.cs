@@ -158,8 +158,7 @@ public class ImportDialogScript : MonoBehaviour
 
         if (!ObjIsTris())
         {
-            _xmlLayout.GetElementById("not-tris-warning").SetAndApplyAttribute("active", "true");
-            _xmlLayout.GetElementById("hide-main-panel").SetAndApplyAttribute("active", "true");
+            ShowNotTrisWarning();
             return;
         }
 
@@ -195,7 +194,7 @@ public class ImportDialogScript : MonoBehaviour
 
             string objFile = objDir + _activeObjElement.id;
 
-            var options = new MeshOptions(craftFile, objFile, _shellWidth, _scale, _hasMass, _hasDrag, _hasCollision, false);
+            var options = new MeshOptions(craftFile, objFile, _shellWidth, _scale, _hasMass, _hasDrag, _hasCollision, _fuelTank);
 
             Debug.Log("Calling BuildMesh() with the following options:\n" + options);
             //Debug.Log(options);
@@ -209,18 +208,34 @@ public class ImportDialogScript : MonoBehaviour
         }
     }
 
-    public void OnTestSaveClicked()
+    private void HideMainPanel(string active)
     {
-        string newId = "AABC";
-        (Game.Instance.Designer as DesignerScript).CraftScript.Data.Name = newId;
-        Debug.Log("Saving craft with id " + newId);
-        Game.Instance.Designer.SaveCraft(newId, newId, false);
+
+        _xmlLayout.GetElementById("hide-main-panel").SetAndApplyAttribute("active", active);
+    }
+
+    public void ShowNotTrisWarning()
+    {
+        _xmlLayout.GetElementById("not-tris-warning").SetAndApplyAttribute("active", "true");
+        HideMainPanel("true");
     }
 
     public void NotTrisWarningClose()
     {
         _xmlLayout.GetElementById("not-tris-warning").SetAndApplyAttribute("active", "false");
-        _xmlLayout.GetElementById("hide-main-panel").SetAndApplyAttribute("active", "false");
+        HideMainPanel("false");
+    }
+
+    public void OnAdvancedButtonClicked()
+    {
+        _xmlLayout.GetElementById("advanced-options-panel").SetAndApplyAttribute("active", "true");
+        HideMainPanel("true");
+    }
+
+    public void CloseAdvancedPanel()
+    {
+        _xmlLayout.GetElementById("advanced-options-panel").SetAndApplyAttribute("active", "false");
+        HideMainPanel("false");
     }
 
     private static Obj GetObj()

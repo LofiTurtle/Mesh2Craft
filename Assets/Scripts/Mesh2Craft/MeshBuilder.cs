@@ -4,11 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using static System.Numerics.Vector3;
 using System.Xml.Linq;
 using static System.Math;
 using UnityEngine;
-using Vector3 = System.Numerics.Vector3;
+using Vector3 = UnityEngine.Vector3;
 using Quaternion = UnityEngine.Quaternion;
 using Assets.Scripts;
 using Assets.Scripts.Design;
@@ -112,6 +111,10 @@ class MeshBuilder
         var bodyPartIds = bodiesElement.Elements().First(x => x.Attribute("id").Value == meshBodyId.ToString())
             .Attribute("partIds");
 
+        Vector3 UnitX = new Vector3(1, 0, 0);
+        Vector3 UnitY = new Vector3(0, 1, 0);
+        Vector3 UnitZ = new Vector3(0, 0, 1);
+
         if (!options.fuelTank) // build using structural panels
         {
             options.shellWidth *= 10; // because structural panels are 0.1 wide (1/10th of scale)
@@ -129,57 +132,51 @@ class MeshBuilder
                 var partPos =
                     (basePos + vert2) / 2; //not used for structural panels, their position is defined from the base
                 var offset = vert2 - basePos;
-                var baseWidth = (vert0 - vert1).Length();
+                var baseWidth = (vert0 - vert1).magnitude;
 
                 //get orientation and axes
-                var vForward = Normalize((vert1 - vert0)); //local Z axis
-                var vRight = Normalize(Cross(vForward, offset)); //local X axis
-                var vUp = Normalize(Cross(vRight, vForward)); //local Y axis
+                var vForward = (vert1 - vert0).normalized; //local Z axis
+                var vRight = Vector3.Cross(vForward, offset).normalized; //local X axis
+                var vUp = Vector3.Cross(vRight, vForward).normalized; //local Y axis
 
                 //offset to account for the width of the structural panel
                 float zFightOffset = (float) (1.0 / 5000);
-                basePos += Multiply((float) ((options.shellWidth * .05 - zFightOffset)), vRight);
+                basePos += (float) (options.shellWidth * .05 - zFightOffset) * vRight;
                 // *.05 is bc panels are .1 wide, and being offset by half
 
                 //first rotation of offset vector
-                var firstRotAxis = Normalize(Cross(vForward, UnitZ));
-                var firstRotAngle = Acos(Dot(vForward, UnitZ));
+                var firstRotAxis = Vector3.Cross(vForward, UnitZ).normalized;
+                var firstRotAngle = Acos(Vector3.Dot(vForward, UnitZ));
                 var offsetFirstRot = VectorRotate(offset, firstRotAxis, firstRotAngle);
                 var vUpRotated = VectorRotate(vUp, firstRotAxis, firstRotAngle);
-                if (double.IsNaN(offsetFirstRot.X))
+
+                // handle cases where face is alligned with axis
+                if (firstRotAngle > PI - 0.0001)
                 {
-                    //handles cases where face is aligned with axis
-                    Console.WriteLine("First rot axis = NaN");
-                    if (firstRotAngle > PI / 2)
-                    {
-                        Console.WriteLine("Flipped Z axis");
-                        offsetFirstRot = new Vector3(offset.X, offset.Y, offset.Z * -1);
-                        vUpRotated =
-                            new Vector3(vUp.X, vUp.Y,
-                                vUp.Z * -1); //I don't think this is necessary. Z component should be 0 already
-                        vForward.Z *= -1;
-                    }
-                    else
-                    {
-                        offsetFirstRot = offset;
-                        vUpRotated = vUp;
-                    }
+                    offsetFirstRot = new Vector3(offset.x, offset.y, offset.z * -1);
+                    vUpRotated = new Vector3(vUp.x, vUp.y, vUp.z * -1);
+                    //I don't think this is necessary ^. Z component should be 0 already
+                    vForward.z *= -1;
+                }
+                else if (firstRotAngle < 0.0001)
+                {
+                    offsetFirstRot = offset;
+                    vUpRotated = vUp;
                 }
 
                 //second rotation of offset vector
-                Vector3 finalRotAxis = Normalize(Cross(vUpRotated, UnitY));
-                var finalRotAngle = Acos(Dot(vUpRotated, UnitY));
+                Vector3 finalRotAxis = Vector3.Cross(vUpRotated, UnitY).normalized;
+                var finalRotAngle = Acos(Vector3.Dot(vUpRotated, UnitY));
                 var offsetFinalRot = VectorRotate(offsetFirstRot, finalRotAxis, finalRotAngle);
-                if (double.IsNaN(offsetFinalRot.X))
+
+                // handle cases where face is aligned with axis
+                if (finalRotAngle > PI - 0.0001)
                 {
-                    if (finalRotAngle > PI / 2)
-                    {
-                        offsetFinalRot = new Vector3(offsetFirstRot.X, offsetFirstRot.Y * -1, offsetFirstRot.Z);
-                    }
-                    else
-                    {
-                        offsetFinalRot = offsetFirstRot;
-                    }
+                    offsetFinalRot = new Vector3(offsetFirstRot.x, offsetFirstRot.y * -1, offsetFirstRot.z);
+                }
+                else if (finalRotAngle < 0.0001)
+                {
+                    offsetFinalRot = offsetFirstRot;
                 }
 
                 offsetFinalRot *= (float) .5; //because game values are half of the vector
@@ -187,7 +184,7 @@ class MeshBuilder
 
                 // using unity's quaternion to get euler angles from forward and up vectors
                 Quaternion quat = new Quaternion();
-                quat.SetLookRotation(NumericsToUnity(vForward), NumericsToUnity(vUp));
+                quat.SetLookRotation((vForward), (vUp));
                 Vector3 eulerRot = new Vector3(quat.eulerAngles.x, quat.eulerAngles.y, quat.eulerAngles.z);
 
                 //math done, adding to XML
@@ -195,8 +192,8 @@ class MeshBuilder
                 partsElement.Add(new XElement("Part",
                     new XAttribute("id", lastPartId + partIdOffset),
                     new XAttribute("partType", "StructuralPanel1"),
-                    new XAttribute("position", basePos.X + "," + basePos.Y + "," + basePos.Z),
-                    new XAttribute("rotation", eulerRot.X + "," + eulerRot.Y + "," + eulerRot.Z),
+                    new XAttribute("position", basePos.x + "," + basePos.y + "," + basePos.z),
+                    new XAttribute("rotation", eulerRot.x + "," + eulerRot.y + "," + eulerRot.z),
                     new XAttribute("name", objName + "_" + partIdOffset),
                     new XAttribute("commandPodId", "0"),
                     new XAttribute("materials", "0,1,2,3,4"),
@@ -215,9 +212,9 @@ class MeshBuilder
                         new XAttribute("rootLeadingOffset", baseWidth * (1 / options.shellWidth)),
                         new XAttribute("rootTrailingOffset", baseWidth * (1 / options.shellWidth)),
                         new XAttribute("tipLeadingOffset", "0"),
-                        new XAttribute("tipPosition", (2 * offsetFinalRot.X * (1 / options.shellWidth)) + ","
-                            + (2 * offsetFinalRot.Y * (1 / options.shellWidth)) + ","
-                            + (2 * offsetFinalRot.Z * (1 / options.shellWidth))),
+                        new XAttribute("tipPosition", (2 * offsetFinalRot.x * (1 / options.shellWidth)) + ","
+                            + (2 * offsetFinalRot.y * (1 / options.shellWidth)) + ","
+                            + (2 * offsetFinalRot.z * (1 / options.shellWidth))),
                         new XAttribute("tipTrailingOffset", "0"))));
 
                 connectionsElement.Add(new XElement("Connection",
@@ -241,8 +238,7 @@ class MeshBuilder
         }
         else // build using fuel tanks
         {
-            Debug.Log("Called BuildMesh() with fuselages.");
-            
+            options.shellWidth *= 0.5;
             foreach (var face in faces)
             {
                 partIdOffset++;
@@ -255,65 +251,62 @@ class MeshBuilder
                 var basePos = (vert0 + vert1) / 2;
                 var partPos = (basePos + vert2) / 2;
                 var offset = vert2 - basePos;
-                var baseWidth = (vert0 - vert1).Length();
+                var baseWidth = (vert0 - vert1).magnitude;
 
                 //get orientation and axes
-                var vForward = Normalize((vert1 - vert0)); //local Z axis
-                var vRight = Normalize(Cross(vForward, offset)); //local X axis
-                var vUp = Normalize(Cross(vRight, vForward)); //local Y axis
+                var vForward = (vert1 - vert0).normalized; //local Z axis
+                var vRight = Vector3.Cross(vForward, offset).normalized; //local X axis
+                var vUp = Vector3.Cross(vRight, vForward).normalized; //local Y axis
 
                 //offset to account for the width of the structural panel
                 float zFightOffset = (float)(1.0 / 5000);
-                basePos += Multiply((float)((options.shellWidth * .05 - zFightOffset)), vRight);
-                // *.05 is bc panels are .1 wide, and being offset by half
+                partPos += (float)(options.shellWidth - zFightOffset) * vRight;
 
                 //first rotation of offset vector
-                var firstRotAxis = Normalize(Cross(vForward, UnitZ));
-                var firstRotAngle = Acos(Dot(vForward, UnitZ));
+                var firstRotAxis = Vector3.Cross(vForward, UnitZ).normalized;
+                var firstRotAngle = Acos(Vector3.Dot(vForward, UnitZ));
                 var offsetFirstRot = VectorRotate(offset, firstRotAxis, firstRotAngle);
                 var vUpRotated = VectorRotate(vUp, firstRotAxis, firstRotAngle);
-                if (double.IsNaN(offsetFirstRot.X))
+
+                // handle cases where face is alligned with axis
+                if (firstRotAngle > PI - 0.0001)
                 {
-                    //handles cases where face is aligned with axis
-                    Console.WriteLine("First rot axis = NaN");
-                    if (firstRotAngle > PI / 2)
-                    {
-                        Console.WriteLine("Flipped Z axis");
-                        offsetFirstRot = new Vector3(offset.X, offset.Y, offset.Z * -1);
-                        vUpRotated =
-                            new Vector3(vUp.X, vUp.Y,
-                                vUp.Z * -1); //I don't think this is necessary. Z component should be 0 already
-                        vForward.Z *= -1;
-                    }
-                    else
-                    {
-                        offsetFirstRot = offset;
-                        vUpRotated = vUp;
-                    }
+                    offsetFirstRot = new Vector3(offset.x, offset.y, offset.z * -1);
+                    vUpRotated = new Vector3(vUp.x, vUp.y, vUp.z * -1);
+                    //I don't think this is necessary ^. Z component should be 0 already
+                    vForward.z *= -1;
+                }
+                else if (firstRotAngle < 0.0001)
+                {
+                    offsetFirstRot = offset;
+                    vUpRotated = vUp;
                 }
 
                 //second rotation of offset vector
-                Vector3 finalRotAxis = Normalize(Cross(vUpRotated, UnitY));
-                var finalRotAngle = Acos(Dot(vUpRotated, UnitY));
+                Vector3 finalRotAxis = (Vector3.Cross(vUpRotated, UnitY)).normalized;
+                var finalRotAngle = Acos(Vector3.Dot(vUpRotated, UnitY));
                 var offsetFinalRot = VectorRotate(offsetFirstRot, finalRotAxis, finalRotAngle);
-                if (double.IsNaN(offsetFinalRot.X))
+
+                // handle cases where face is aligned with axis
+                if (finalRotAngle > PI - 0.0001)
                 {
-                    if (finalRotAngle > PI / 2)
-                    {
-                        offsetFinalRot = new Vector3(offsetFirstRot.X, offsetFirstRot.Y * -1, offsetFirstRot.Z);
-                    }
-                    else
-                    {
-                        offsetFinalRot = offsetFirstRot;
-                    }
+                    offsetFinalRot = new Vector3(offsetFirstRot.x, offsetFirstRot.y * -1, offsetFirstRot.z);
                 }
+                else if (finalRotAngle < 0.0001)
+                {
+                    offsetFinalRot = offsetFirstRot;
+                }
+
+                // fuselages with 0 length break things
+                if (offsetFinalRot.y < 0.001)
+                    continue;
 
                 offsetFinalRot *= (float).5; //because game values are half of the vector
                 baseWidth *= (float).5;
 
                 // using unity's quaternion to get euler angles from forward and up vectors
                 Quaternion quat = new Quaternion();
-                quat.SetLookRotation(NumericsToUnity(vForward), NumericsToUnity(vUp));
+                quat.SetLookRotation((vForward), (vUp));
                 Vector3 eulerRot = new Vector3(quat.eulerAngles.x, quat.eulerAngles.y, quat.eulerAngles.z);
 
                 //math done, adding to XML
@@ -321,8 +314,8 @@ class MeshBuilder
                 partsElement.Add(new XElement("Part",
                     new XAttribute("id", lastPartId + partIdOffset),
                     new XAttribute("partType", "Fuselage1"),
-                    new XAttribute("position", partPos.X + "," + partPos.Y + "," + partPos.Z),
-                    new XAttribute("rotation", eulerRot.X + "," + eulerRot.Y + "," + eulerRot.Z),
+                    new XAttribute("position", partPos.x + "," + partPos.y + "," + partPos.z),
+                    new XAttribute("rotation", eulerRot.x + "," + eulerRot.y + "," + eulerRot.z),
                     new XAttribute("name", objName + "_" + partIdOffset),
                     new XAttribute("commandPodId", "0"),
                     new XAttribute("materials", "0,1,2,3,4"),
@@ -332,26 +325,18 @@ class MeshBuilder
                         new XAttribute("area", "0,0,0,0,0,0")),
                     new XElement("Config",
                         new XAttribute("includeInDrag", options.hasDrag ? "true" : "false"),
-                        new XAttribute("partCollisionHandling", options.hasCollision ? "Default" : "Never")),
+                        new XAttribute("partCollisionHandling", options.hasCollision ? "Default" : "Never"),
+                        new XAttribute("massScale", options.hasMass ? "1" : "0")),
                     new XElement("Fuselage",
                         new XAttribute("autoResize", "false"),
                         new XAttribute("bottomScale", options.shellWidth + "," + baseWidth),
                         new XAttribute("cornerRadiuses", "0,0,0,0,0,0,0,0"),
-                        new XAttribute("offset", offsetFinalRot.X + "," + offsetFinalRot.Y + "," + offsetFinalRot.Z),
+                        new XAttribute("offset", offsetFinalRot.x + "," + offsetFinalRot.y + "," + offsetFinalRot.z),
                         new XAttribute("topScale", options.shellWidth + ",0")),
                     new XElement("FuelTank",
                         new XAttribute("capacity", "0"),
                         new XAttribute("fuel", "0"),
                         new XAttribute("subPriority", "0"))));
-                    //new XElement("Wing",
-                    //    new XAttribute("hingeDistanceFromTrailingEdge", "0.5"),
-                    //    new XAttribute("rootLeadingOffset", baseWidth * (1 / options.shellWidth)),
-                    //    new XAttribute("rootTrailingOffset", baseWidth * (1 / options.shellWidth)),
-                    //    new XAttribute("tipLeadingOffset", "0"),
-                    //    new XAttribute("tipPosition", (2 * offsetFinalRot.X * (1 / options.shellWidth)) + ","
-                    //        + (2 * offsetFinalRot.Y * (1 / options.shellWidth)) + ","
-                    //        + (2 * offsetFinalRot.Z * (1 / options.shellWidth))),
-                    //    new XAttribute("tipTrailingOffset", "0"))));
 
                 connectionsElement.Add(new XElement("Connection",
                     new XAttribute("partA", lastPartId + partIdOffset),
@@ -371,6 +356,7 @@ class MeshBuilder
             // Game.Instance.Designer.ShowMessage("'" + Path.GetFileName(options.objFile) + "'" + " Imported Successfully");
 
             obj = new Obj();
+            craftDoc = null;
         }
     }
 
@@ -399,11 +385,6 @@ class MeshBuilder
 
     public static Vector3 VectorRotate(Vector3 v, Vector3 k, double theta)
     {
-        return v * (float)Cos(theta) + Cross(k, v) * (float)Sin(theta) + k * Dot(k, v) * (float)(1 - Cos(theta));
-    }
-
-    public static UnityEngine.Vector3 NumericsToUnity(Vector3 v)
-    {
-        return new UnityEngine.Vector3(v.X, v.Y, v.Z);
+        return v * (float)Cos(theta) + Vector3.Cross(k, v) * (float)Sin(theta) + k * Vector3.Dot(k, v) * (float)(1 - Cos(theta));
     }
 }

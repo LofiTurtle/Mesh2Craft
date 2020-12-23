@@ -1,5 +1,4 @@
 using System.Xml.Linq;
-using Assets.Scripts.Mesh2Craft;
 using ModApi.Ui;
 using UI.Xml;
 
