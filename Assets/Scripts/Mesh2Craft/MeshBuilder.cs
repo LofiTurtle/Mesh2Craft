@@ -19,6 +19,10 @@ class MeshBuilder
 
     public static void BuildMesh(MeshOptions options)
     {
+        /*
+         * TODO root and handle should respect hasMass etc options
+         */
+
         Game.Instance.Designer.ShowMessage("Importing Model...");
 
         string objName = Path.GetFileNameWithoutExtension(options.objFile);
@@ -59,7 +63,10 @@ class MeshBuilder
             new XElement("Drag",
                 new XAttribute("drag", "0,0,0,0,0,0"),
                 new XAttribute("area", "0,0,0,0,0,0")),
-            new XElement("Config"),
+            new XElement("Config",
+                new XAttribute("includeInDrag", options.hasDrag ? "true" : "false"),
+                new XAttribute("partCollisionHandling", options.hasCollision ? "Default" : "Never"),
+                new XAttribute("massScale", options.hasMass ? "1" : "0")),
             new XElement("Fuselage",
                 new XAttribute("autoResize", "false"),
                 new XAttribute("bottomScale", "0.05,0.05"),
@@ -83,7 +90,10 @@ class MeshBuilder
             new XElement("Drag",
                 new XAttribute("drag", "0,0,0,0,0,0"),
                 new XAttribute("area", "0,0,0,0,0,0")),
-            new XElement("Config"),
+            new XElement("Config",
+                new XAttribute("includeInDrag", options.hasDrag ? "true" : "false"),
+                new XAttribute("partCollisionHandling", options.hasCollision ? "Default" : "Never"),
+                new XAttribute("massScale", options.hasMass ? "1" : "0")),
             new XElement("Fuselage",
                 new XAttribute("autoResize", "false"),
                 new XAttribute("bottomScale", "0.1,0.1"),
