@@ -14,7 +14,6 @@ using ObjParser;
 
 public class ImportDialogScript : MonoBehaviour
 {
-    // TODO add "Confirm" button in advanced options panel. Remove "X" button
     // TODO save last used options instead of resetting to defaults. (Remove original assignments, and call ResetOptionValues on loading the panel
 
     private static readonly string objDir = Mod.Instance.objDirectory;

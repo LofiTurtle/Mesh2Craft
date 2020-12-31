@@ -82,7 +82,7 @@
     </Panel>
     <!--options-->
     <Panel rectAlignment="LowerCenter" height="290" border="border">
-    <VerticalLayout childAlignment="UpperLeft" childForceExpandHeight="false" spacing="5" padding="15">
+    <VerticalLayout childAlignment="UpperLeft" height="230" rectAlignment="UpperCenter" childForceExpandHeight="false" spacing="5" padding="15">
       <Panel class="no-image" preferredHeight="30">
         <Toggle id="has-mass-toggle" onValueChanged="OnHasMassChanged(selectedValue);" isOn="true" rectAlignment="MiddleLeft" tooltip="Whether or not the parts will have mass." tooltipPosition="Above" />
         <TextMeshPro class="label" text="Parts Have Mass" offsetXY="60 0" />
@@ -107,12 +107,12 @@
         </Panel>
         <TextMeshPro class="label" text="Shell Width" offsetXY="78 0"/>
       </Panel>
-      <Panel preferredHeight="60">
-        <Button class="btn" id="confirm-advanced-button" width="150" onClick="CloseAdvancedPanel">
+    </VerticalLayout>
+      <Panel height="60" width="180" rectAlignment="LowerCenter" padding="15">
+        <Button class="btn" id="confirm-advanced-button" rectAlignment="LowerCenter" width="150" onClick="CloseAdvancedPanel">
           <TextMeshPro text="Confirm" />
         </Button>
       </Panel>
-    </VerticalLayout>
     </Panel>
   </Panel>
 

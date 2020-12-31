@@ -12,16 +12,13 @@ using Quaternion = UnityEngine.Quaternion;
 using Assets.Scripts;
 using Assets.Scripts.Design;
 
-class MeshBuilder
+static class MeshBuilder
 {
     public static XDocument craftDoc;
     public static Obj obj = new Obj();
 
     public static void BuildMesh(MeshOptions options)
     {
-        /*
-         * TODO root and handle should respect hasMass etc options
-         */
 
         Game.Instance.Designer.ShowMessage("Importing Model...");
 
@@ -333,6 +330,22 @@ class MeshBuilder
                     new XElement("Drag",
                         new XAttribute("drag", "0,0,0,0,0,0"),
                         new XAttribute("area", "0,0,0,0,0,0")),
+                    new XElement("AttachPoints", 
+                        new XElement("AttachPoint",
+                            new XAttribute("id", "0"),
+                            new XAttribute("enabled", "false")),
+                        new XElement("AttachPoint",
+                            new XAttribute("id", "2"),
+                            new XAttribute("enabled", "false")),
+                        new XElement("AttachPoint",
+                            new XAttribute("id", "3"),
+                            new XAttribute("enabled", "false")),
+                        new XElement("AttachPoint",
+                            new XAttribute("id", "4"),
+                            new XAttribute("enabled", "false")),
+                        new XElement("AttachPoint",
+                            new XAttribute("id", "5"),
+                            new XAttribute("enabled", "false"))),
                     new XElement("Config",
                         new XAttribute("includeInDrag", options.hasDrag ? "true" : "false"),
                         new XAttribute("partCollisionHandling", options.hasCollision ? "Default" : "Never"),
@@ -342,11 +355,12 @@ class MeshBuilder
                         new XAttribute("bottomScale", options.shellWidth + "," + baseWidth),
                         new XAttribute("cornerRadiuses", "0,0,0,0,0,0,0,0"),
                         new XAttribute("offset", offsetFinalRot.x + "," + offsetFinalRot.y + "," + offsetFinalRot.z),
-                        new XAttribute("topScale", options.shellWidth + ",0")),
-                    new XElement("FuelTank",
-                        new XAttribute("capacity", "0"),
-                        new XAttribute("fuel", "0"),
-                        new XAttribute("subPriority", "0"))));
+                        new XAttribute("topScale", options.shellWidth + ",0"))
+                    //new XElement("FuelTank",
+                    //    new XAttribute("capacity", "0"),
+                    //    new XAttribute("fuel", "0"),
+                    //    new XAttribute("subPriority", "0"))
+                     ));
 
                 connectionsElement.Add(new XElement("Connection",
                     new XAttribute("partA", lastPartId + partIdOffset),
