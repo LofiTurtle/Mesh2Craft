@@ -74,15 +74,15 @@
   <Panel id="hide-main-panel" width="600" height="400" rectAlignment="MiddleCenter" color="TransparentPanel" active="false">  </Panel>
 
   <!--advanced options-->
-  <Panel id="advanced-options-panel" color="Panel" width="300" height="320" rectAlignment="MiddleCenter" active="false">
+  <Panel id="advanced-options-panel" color="Panel" width="300" height="350" rectAlignment="MiddleCenter" active="false">
     <!--title panel-->
     <Panel class="advanced-header" rectAlignment="UpperCenter" height="30" color="border">
       <TextMeshPro class="text-lg" text="Advanced Options"/>
       <!--<Image class="flyout-close-button" id="AdvancedOptionsClose" rectAlignment="MiddleRight" color="labeltext" onClick="CloseAdvancedPanel;"/>-->
     </Panel>
     <!--options-->
-    <Panel rectAlignment="LowerCenter" height="290" border="border">
-      <VerticalLayout childAlignment="UpperLeft" height="230" rectAlignment="UpperCenter" childForceExpandHeight="false" spacing="5" padding="15">
+    <Panel rectAlignment="LowerCenter" height="320" border="border">
+      <VerticalLayout childAlignment="UpperLeft" height="260" rectAlignment="UpperCenter" childForceExpandHeight="false" spacing="5" padding="15">
         <Panel class="no-image" preferredHeight="30">
           <Toggle id="has-mass-toggle" onValueChanged="OnHasMassChanged(selectedValue);" isOn="true" rectAlignment="MiddleLeft" tooltip="Whether or not the parts will have mass." tooltipPosition="Above" />
           <TextMeshPro class="label" text="Parts Have Mass" offsetXY="60 0" />
@@ -110,10 +110,18 @@
         <Panel preferredHeight="30">
           <Panel class="no-image" height="30" width="70" padding="0 2 0 0" rectAlignment="MiddleLeft">
             <TextMeshProInputField id="heat-shield-input" onValueChanged="OnHeatShieldChanged(value);" contentType="IntegerNumber" rectAlignment="MiddleLeft" height="30" text="0" lineType="SingleLine" tooltip="The heat shield for each part of the model." tooltipPosition="Above">
-              <TMP_Text internalId="shell-width-field" text="0.001" alignment="Center" />
+              <TMP_Text internalId="heat-shield-field" text="0" alignment="Center" />
             </TextMeshProInputField>
           </Panel>
           <TextMeshPro class="label" text="Heat Shield" offsetXY="78 0"/>
+        </Panel>
+        <Panel preferredHeight="30">
+          <Panel class="no-image" height="30" width="70" padding="0 2 0 0" rectAlignment="MiddleLeft">
+            <TextMeshProInputField id="max-heat-input" onValueChanged="OnMaxTempChanged(value);" contentType="IntegerNumber" rectAlignment="MiddleLeft" height="30" text="1500" lineType="SingleLine" tooltip="The max temperature for each part of the model." tooltipPosition="Above">
+              <TMP_Text internalId="max-temperature-field" text="1500" alignment="Center" />
+            </TextMeshProInputField>
+          </Panel>
+          <TextMeshPro class="label" text="Max Temperature" offsetXY="78 0"/>
         </Panel>
       </VerticalLayout>
       <Panel height="60" width="180" rectAlignment="LowerCenter" padding="15">

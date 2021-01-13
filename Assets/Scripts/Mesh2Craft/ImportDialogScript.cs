@@ -25,6 +25,7 @@ public class ImportDialogScript : MonoBehaviour
     private static double _scale = 1;
     private static double _shellWidth = 0.001;
     private static double _heatShield = 0;
+    private static double _maxTemp = 1500;
     private static bool _hasMass = true;
     private static bool _hasDrag = true;
     private static bool _hasCollision = true;
@@ -54,6 +55,7 @@ public class ImportDialogScript : MonoBehaviour
         _scale = 1;
         _shellWidth = 0.001;
         _heatShield = 0;
+        _maxTemp = 1500;
         _hasMass = true;
         _hasDrag = true;
         _hasCollision = true;
@@ -198,7 +200,7 @@ public class ImportDialogScript : MonoBehaviour
 
             string objFile = objDir + _activeObjElement.id;
 
-            var options = new MeshOptions(craftFile, objFile, _shellWidth, _scale, _heatShield, _hasMass, _hasDrag, _hasCollision, _fuelTank);
+            var options = new MeshOptions(craftFile, objFile, _shellWidth, _scale, _heatShield, _maxTemp, _hasMass, _hasDrag, _hasCollision, _fuelTank);
 
             Debug.Log("Calling BuildMesh() with the following options:\n" + options);
             //Debug.Log(options);
@@ -301,15 +303,20 @@ public class ImportDialogScript : MonoBehaviour
     {
         _heatShield = Double.Parse(value);
     }
+
+    public void OnMaxTempChanged(string value)
+    {
+        _maxTemp = Double.Parse(value);
+    }
 }
 
 public class MeshOptions
 {
     public string objFile, craftFile;
-    public double shellWidth, scale, heatShield;
+    public double shellWidth, scale, heatShield, maxTemp;
     public bool hasMass, hasDrag, hasCollision, fuelTank;
 
-    public MeshOptions(string craftFile, string objFile, double shellWidth, double scale, double heatShield,
+    public MeshOptions(string craftFile, string objFile, double shellWidth, double scale, double heatShield, double maxTemp,
         bool hasMass, bool hasDrag, bool hasCollision, bool fuelTank)
     {
         this.craftFile = craftFile;
@@ -317,6 +324,7 @@ public class MeshOptions
         this.shellWidth = Math.Max(shellWidth, .001);
         this.scale = scale;
         this.heatShield = heatShield;
+        this.maxTemp = maxTemp;
         this.hasMass = hasMass;
         this.hasDrag = hasDrag;
         this.hasCollision = hasCollision;
@@ -333,6 +341,7 @@ public class MeshOptions
                + "No Drag: " + hasDrag + "\n"
                + "No Collision: " + hasCollision + "\n"
                + "Fuel Tank: " + fuelTank + "\n"
-               + "Heat Sheild: " + heatShield;
+               + "Heat Sheild: " + heatShield + "\n"
+               + "Max Temp: " + maxTemp;
     }
 }
