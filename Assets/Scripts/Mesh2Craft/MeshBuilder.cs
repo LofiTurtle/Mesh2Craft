@@ -63,16 +63,13 @@ static class MeshBuilder
             new XElement("Config",
                 new XAttribute("includeInDrag", options.hasDrag ? "true" : "false"),
                 new XAttribute("partCollisionHandling", options.hasCollision ? "Default" : "Never"),
-                new XAttribute("massScale", options.hasMass ? "1" : "0")),
+                new XAttribute("massScale", options.hasMass ? "1" : "0"),
+                new XAttribute("heatShield", options.heatShield)),
             new XElement("Fuselage",
                 new XAttribute("autoResize", "false"),
                 new XAttribute("bottomScale", "0.05,0.05"),
                 new XAttribute("offset", "0,0.05,0"),
-                new XAttribute("topScale", "0.05,0.05")),
-            new XElement("FuelTank",
-                new XAttribute("capacity", "0"),
-                new XAttribute("fuel", "0"),
-                new XAttribute("subPriority", "0"))));
+                new XAttribute("topScale", "0.05,0.05"))));
         partIdOffset++;
 
         // handle part
@@ -90,16 +87,13 @@ static class MeshBuilder
             new XElement("Config",
                 new XAttribute("includeInDrag", options.hasDrag ? "true" : "false"),
                 new XAttribute("partCollisionHandling", options.hasCollision ? "Default" : "Never"),
-                new XAttribute("massScale", options.hasMass ? "1" : "0")),
+                new XAttribute("massScale", options.hasMass ? "1" : "0"),
+                new XAttribute("heatShield", options.heatShield)),
             new XElement("Fuselage",
                 new XAttribute("autoResize", "false"),
                 new XAttribute("bottomScale", "0.1,0.1"),
                 new XAttribute("offset", "0,0.1,0"),
-                new XAttribute("topScale", "0.1,0.1")),
-            new XElement("FuelTank",
-                new XAttribute("capacity", "0"),
-                new XAttribute("fuel", "0"),
-                new XAttribute("subPriority", "0"))));
+                new XAttribute("topScale", "0.1,0.1"))));
 
         connectionsElement.Add(new XElement("Connection",
             new XAttribute("partA", lastPartId + partIdOffset),
@@ -213,7 +207,8 @@ static class MeshBuilder
                         new XAttribute("massScale", options.shellWidth * (options.hasMass ? 1 : 0)),
                         new XAttribute("dragScale", options.shellWidth * (options.hasDrag ? 1 : 0)),
                         new XAttribute("includeInDrag", options.hasDrag ? "true" : "false"),
-                        new XAttribute("partCollisionHandling", options.hasCollision ? "Default" : "Never")),
+                        new XAttribute("partCollisionHandling", options.hasCollision ? "Default" : "Never"),
+                        new XAttribute("heatShield", options.heatShield)),
                     new XElement("Wing",
                         new XAttribute("hingeDistanceFromTrailingEdge", "0.5"),
                         new XAttribute("rootLeadingOffset", baseWidth * (1 / options.shellWidth)),
@@ -280,13 +275,22 @@ static class MeshBuilder
                 {
                     offsetFirstRot = new Vector3(offset.x, offset.y, offset.z * -1);
                     vUpRotated = new Vector3(vUp.x, vUp.y, vUp.z * -1);
-                    //I don't think this is necessary ^. Z component should be 0 already
                     vForward.z *= -1;
+
+                    //if (partIdOffset == 327) // delete this
+                    //{
+                    //    Debug.Log("Flipped z axis");
+                    //}
                 }
                 else if (firstRotAngle < 0.0001)
                 {
                     offsetFirstRot = offset;
                     vUpRotated = vUp;
+
+                    //if (partIdOffset == 327) // delete this
+                    //{
+                    //    Debug.Log("Did not flip z axis");
+                    //}
                 }
 
                 //second rotation of offset vector
@@ -298,15 +302,56 @@ static class MeshBuilder
                 if (finalRotAngle > PI - 0.0001)
                 {
                     offsetFinalRot = new Vector3(offsetFirstRot.x, offsetFirstRot.y * -1, offsetFirstRot.z);
+
+                    //if (partIdOffset == 327) // delete this
+                    //{
+                    //    Debug.Log("Flipped y axis");
+                    //}
                 }
                 else if (finalRotAngle < 0.0001)
                 {
                     offsetFinalRot = offsetFirstRot;
+
+                    //if (partIdOffset == 327) // delete this
+                    //{
+                    //    Debug.Log("Did not flip y axis");
+                    //}
                 }
+
+                //Debug.Log("Face # " + partIdOffset + "\n" +
+                //          "offsetFinalRot: " + offsetFinalRot);
+
+                //if (partIdOffset == 327)
+                //{
+                //    Debug.Log("offsetFirstRot: " + offsetFirstRot + "\n" +
+                //              "offsetFinalRot: " + offsetFinalRot);
+                //}
+
+                //if (partIdOffset == 327) // delete this
+                //{
+                //    Debug.Log("First rotation: " + firstRotAngle + "\n" +
+                //              "Final rotation: " + finalRotAngle);
+                //}
 
                 // fuselages with 0 length break things
                 if (offsetFinalRot.y < 0.001)
+                {
+                    //Debug.Log("0 length fuselage skipped: " + partIdOffset + "\n" +
+                    //          "offset: " + offsetFinalRot);
+                    partIdOffset--;
                     continue;
+                }
+
+                // broken offset breaks things
+                if (Double.IsInfinity(offsetFinalRot.x) || Double.IsNaN(offsetFinalRot.x) ||
+                    Double.IsInfinity(offsetFinalRot.y) || Double.IsNaN(offsetFinalRot.y) ||
+                    Double.IsInfinity(offsetFinalRot.z) || Double.IsNaN(offsetFinalRot.z))
+                {
+                    //Debug.Log("Degenerate fuselage skipped :" + partIdOffset + "\n" +
+                    //    "offset: " + offsetFinalRot);
+                    partIdOffset--;
+                    continue;
+                }
 
                 offsetFinalRot *= (float).5; //because game values are half of the vector
                 baseWidth *= (float).5;
@@ -349,7 +394,8 @@ static class MeshBuilder
                     new XElement("Config",
                         new XAttribute("includeInDrag", options.hasDrag ? "true" : "false"),
                         new XAttribute("partCollisionHandling", options.hasCollision ? "Default" : "Never"),
-                        new XAttribute("massScale", options.hasMass ? "1" : "0")),
+                        new XAttribute("massScale", options.hasMass ? "1" : "0"),
+                        new XAttribute("heatShield", options.heatShield)),
                     new XElement("Fuselage",
                         new XAttribute("autoResize", "false"),
                         new XAttribute("bottomScale", options.shellWidth + "," + baseWidth),
