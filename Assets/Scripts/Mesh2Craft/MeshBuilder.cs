@@ -19,7 +19,6 @@ static class MeshBuilder
 
     public static void BuildMesh(MeshOptions options)
     {
-
         Game.Instance.Designer.ShowMessage("Importing Model...");
 
         string objName = Path.GetFileNameWithoutExtension(options.objFile);
@@ -263,7 +262,7 @@ static class MeshBuilder
                 var vRight = Vector3.Cross(vForward, offset).normalized; //local X axis
                 var vUp = Vector3.Cross(vRight, vForward).normalized; //local Y axis
 
-                //offset to account for the width of the structural panel
+                //offset to account for the width of the part
                 float zFightOffset = (float)(1.0 / 5000);
                 partPos += (float)(options.shellWidth - zFightOffset) * vRight;
 
@@ -350,8 +349,6 @@ static class MeshBuilder
                     Double.IsInfinity(offsetFinalRot.y) || Double.IsNaN(offsetFinalRot.y) ||
                     Double.IsInfinity(offsetFinalRot.z) || Double.IsNaN(offsetFinalRot.z))
                 {
-                    //Debug.Log("Degenerate fuselage skipped :" + partIdOffset + "\n" +
-                    //    "offset: " + offsetFinalRot);
                     partIdOffset--;
                     continue;
                 }
@@ -406,10 +403,6 @@ static class MeshBuilder
                         new XAttribute("cornerRadiuses", "0,0,0,0,0,0,0,0"),
                         new XAttribute("offset", offsetFinalRot.x + "," + offsetFinalRot.y + "," + offsetFinalRot.z),
                         new XAttribute("topScale", options.shellWidth + ",0"))
-                    //new XElement("FuelTank",
-                    //    new XAttribute("capacity", "0"),
-                    //    new XAttribute("fuel", "0"),
-                    //    new XAttribute("subPriority", "0"))
                      ));
 
                 connectionsElement.Add(new XElement("Connection",
@@ -423,11 +416,10 @@ static class MeshBuilder
 
             craftDoc.Save(options.craftFile);
 
+            Game.Instance.Designer.ShowMessage("Loading...");
             var loader = (Game.Instance.Designer as DesignerScript).CraftLoader;
             loader.LoadCraftInteractive(Path.GetFileNameWithoutExtension(options.craftFile), true, true,
                 "'" + Path.GetFileName(options.objFile) + "'" + " Imported Successfully", null, null);
-
-            // Game.Instance.Designer.ShowMessage("'" + Path.GetFileName(options.objFile) + "'" + " Imported Successfully");
 
             obj = new Obj();
             craftDoc = null;
