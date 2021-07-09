@@ -146,42 +146,12 @@ static class MeshBuilder
                 basePos += (float) (options.shellWidth * .05 - zFightOffset) * vRight;
                 // *.05 is bc panels are .1 wide, and being offset by half
 
-                //first rotation of offset vector
-                var firstRotAxis = Vector3.Cross(vForward, UnitZ).normalized;
-                var firstRotAngle = Acos(Vector3.Dot(vForward, UnitZ));
-                var offsetFirstRot = VectorRotate(offset, firstRotAxis, firstRotAngle);
-                var vUpRotated = VectorRotate(vUp, firstRotAxis, firstRotAngle);
+                Vector3 finalOffset = new Vector3();
+                finalOffset.x = ScalarProjection(offset, vRight);
+                finalOffset.y = ScalarProjection(offset, vUp);
+                finalOffset.z = ScalarProjection(offset, vForward);
 
-                // handle cases where face is alligned with axis
-                if (firstRotAngle > PI - 0.0001)
-                {
-                    offsetFirstRot = new Vector3(offset.x, offset.y, offset.z * -1);
-                    vUpRotated = new Vector3(vUp.x, vUp.y, vUp.z * -1);
-                    //I don't think this is necessary ^. Z component should be 0 already
-                    vForward.z *= -1;
-                }
-                else if (firstRotAngle < 0.0001)
-                {
-                    offsetFirstRot = offset;
-                    vUpRotated = vUp;
-                }
-
-                //second rotation of offset vector
-                Vector3 finalRotAxis = Vector3.Cross(vUpRotated, UnitY).normalized;
-                var finalRotAngle = Acos(Vector3.Dot(vUpRotated, UnitY));
-                var offsetFinalRot = VectorRotate(offsetFirstRot, finalRotAxis, finalRotAngle);
-
-                // handle cases where face is aligned with axis
-                if (finalRotAngle > PI - 0.0001)
-                {
-                    offsetFinalRot = new Vector3(offsetFirstRot.x, offsetFirstRot.y * -1, offsetFirstRot.z);
-                }
-                else if (finalRotAngle < 0.0001)
-                {
-                    offsetFinalRot = offsetFirstRot;
-                }
-
-                offsetFinalRot *= (float) .5; //because game values are half of the vector
+                finalOffset *= (float) .5; //because game values are half of the vector
                 baseWidth *= (float) .5;
 
                 // using unity's quaternion to get euler angles from forward and up vectors
@@ -216,9 +186,9 @@ static class MeshBuilder
                         new XAttribute("rootLeadingOffset", baseWidth * (1 / options.shellWidth)),
                         new XAttribute("rootTrailingOffset", baseWidth * (1 / options.shellWidth)),
                         new XAttribute("tipLeadingOffset", "0"),
-                        new XAttribute("tipPosition", (2 * offsetFinalRot.x * (1 / options.shellWidth)) + ","
-                            + (2 * offsetFinalRot.y * (1 / options.shellWidth)) + ","
-                            + (2 * offsetFinalRot.z * (1 / options.shellWidth))),
+                        new XAttribute("tipPosition", (2 * finalOffset.x * (1 / options.shellWidth)) + ","
+                            + (2 * finalOffset.y * (1 / options.shellWidth)) + ","
+                            + (2 * finalOffset.z * (1 / options.shellWidth))),
                         new XAttribute("tipTrailingOffset", "0"))));
 
                 connectionsElement.Add(new XElement("Connection",
@@ -266,77 +236,13 @@ static class MeshBuilder
                 float zFightOffset = (float)(1.0 / 5000);
                 partPos += (float)(options.shellWidth - zFightOffset) * vRight;
 
-                //first rotation of offset vector
-                var firstRotAxis = Vector3.Cross(vForward, UnitZ).normalized;
-                var firstRotAngle = Acos(Vector3.Dot(vForward, UnitZ));
-                var offsetFirstRot = VectorRotate(offset, firstRotAxis, firstRotAngle);
-                var vUpRotated = VectorRotate(vUp, firstRotAxis, firstRotAngle);
-
-                // handle cases where face is alligned with axis
-                if (firstRotAngle > PI - 0.0001)
-                {
-                    offsetFirstRot = new Vector3(offset.x, offset.y, offset.z * -1);
-                    vUpRotated = new Vector3(vUp.x, vUp.y, vUp.z * -1);
-                    vForward.z *= -1;
-
-                    //if (partIdOffset == 327) // delete this
-                    //{
-                    //    Debug.Log("Flipped z axis");
-                    //}
-                }
-                else if (firstRotAngle < 0.0001)
-                {
-                    offsetFirstRot = offset;
-                    vUpRotated = vUp;
-
-                    //if (partIdOffset == 327) // delete this
-                    //{
-                    //    Debug.Log("Did not flip z axis");
-                    //}
-                }
-
-                //second rotation of offset vector
-                Vector3 finalRotAxis = (Vector3.Cross(vUpRotated, UnitY)).normalized;
-                var finalRotAngle = Acos(Vector3.Dot(vUpRotated, UnitY));
-                var offsetFinalRot = VectorRotate(offsetFirstRot, finalRotAxis, finalRotAngle);
-
-                // handle cases where face is aligned with axis
-                if (finalRotAngle > PI - 0.0001)
-                {
-                    offsetFinalRot = new Vector3(offsetFirstRot.x, offsetFirstRot.y * -1, offsetFirstRot.z);
-
-                    //if (partIdOffset == 327) // delete this
-                    //{
-                    //    Debug.Log("Flipped y axis");
-                    //}
-                }
-                else if (finalRotAngle < 0.0001)
-                {
-                    offsetFinalRot = offsetFirstRot;
-
-                    //if (partIdOffset == 327) // delete this
-                    //{
-                    //    Debug.Log("Did not flip y axis");
-                    //}
-                }
-
-                //Debug.Log("Face # " + partIdOffset + "\n" +
-                //          "offsetFinalRot: " + offsetFinalRot);
-
-                //if (partIdOffset == 327)
-                //{
-                //    Debug.Log("offsetFirstRot: " + offsetFirstRot + "\n" +
-                //              "offsetFinalRot: " + offsetFinalRot);
-                //}
-
-                //if (partIdOffset == 327) // delete this
-                //{
-                //    Debug.Log("First rotation: " + firstRotAngle + "\n" +
-                //              "Final rotation: " + finalRotAngle);
-                //}
+                Vector3 finalOffset = new Vector3();
+                finalOffset.x = ScalarProjection(offset, vRight);
+                finalOffset.y = ScalarProjection(offset, vUp);
+                finalOffset.z = ScalarProjection(offset, vForward);
 
                 // fuselages with 0 length break things
-                if (offsetFinalRot.y < 0.001)
+                if (finalOffset.y < 0.0001)
                 {
                     //Debug.Log("0 length fuselage skipped: " + partIdOffset + "\n" +
                     //          "offset: " + offsetFinalRot);
@@ -345,15 +251,15 @@ static class MeshBuilder
                 }
 
                 // broken offset breaks things
-                if (Double.IsInfinity(offsetFinalRot.x) || Double.IsNaN(offsetFinalRot.x) ||
-                    Double.IsInfinity(offsetFinalRot.y) || Double.IsNaN(offsetFinalRot.y) ||
-                    Double.IsInfinity(offsetFinalRot.z) || Double.IsNaN(offsetFinalRot.z))
+                if (Double.IsInfinity(finalOffset.x) || Double.IsNaN(finalOffset.x) ||
+                    Double.IsInfinity(finalOffset.y) || Double.IsNaN(finalOffset.y) ||
+                    Double.IsInfinity(finalOffset.z) || Double.IsNaN(finalOffset.z))
                 {
                     partIdOffset--;
                     continue;
                 }
 
-                offsetFinalRot *= (float).5; //because game values are half of the vector
+                finalOffset *= (float).5; //because game values are half of the vector
                 baseWidth *= (float).5;
 
                 // using unity's quaternion to get euler angles from forward and up vectors
@@ -401,7 +307,7 @@ static class MeshBuilder
                         new XAttribute("autoResize", "false"),
                         new XAttribute("bottomScale", options.shellWidth + "," + baseWidth),
                         new XAttribute("cornerRadiuses", "0,0,0,0,0,0,0,0"),
-                        new XAttribute("offset", offsetFinalRot.x + "," + offsetFinalRot.y + "," + offsetFinalRot.z),
+                        new XAttribute("offset", finalOffset.x + "," + finalOffset.y + "," + finalOffset.z),
                         new XAttribute("topScale", options.shellWidth + ",0"))
                      ));
 
@@ -452,5 +358,10 @@ static class MeshBuilder
     public static Vector3 VectorRotate(Vector3 v, Vector3 k, double theta)
     {
         return v * (float)Cos(theta) + Vector3.Cross(k, v) * (float)Sin(theta) + k * Vector3.Dot(k, v) * (float)(1 - Cos(theta));
+    }
+
+    public static float ScalarProjection(Vector3 a, Vector3 b)
+    {
+        return (float) Vector3.Dot(a, b) / b.magnitude;
     }
 }
